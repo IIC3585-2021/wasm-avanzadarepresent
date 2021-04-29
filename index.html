@@ -15,21 +15,16 @@
       integrity="sha384-eOJMYsd53ii+scO/bJGFsiCZc+5NDVN2yr8+0RDqr0Ql0h+rP48ckxlpbzKgwra6"
       crossorigin="anonymous"
     />
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vis/4.9.0/vis.min.js"></script>
     <title>TSP</title>
   </head>
 
   <body>
+    <div class="container d-flex justify-content-center">
+      <h1>🧳💰 Vendedor/a viajero/a 👨🏽‍💼 🧑🏽‍💼</h1>
+    </div>
     <div class="container mt-4">
-      <div class="d-flex justify-content-center my-5">
-        <div class="btn-group" role="group" aria-label="Basic example">
-          <button type="button" class="btn btn-primary" id="solve-btn">
-            Solve
-          </button>
-          <button type="button" class="btn btn-danger" id="reset-btn">
-            Reset
-          </button>
-        </div>
-      </div>
       <div class="results">
         <p class="introduced_edges"></p>
         <p class="from"></p>
@@ -38,19 +33,57 @@
       </div>
       <div class="introduction">
         <form>
-          <input type="text" id="from-input" placeholder="desde" />
-          <input type="text" id="to-input" placeholder="hasta" />
-          <input type="text" id="weight-input" placeholder="peso" />
-          <button type="button" class="btn btn-info" id="input-vertex">
+          <div class="form-group form-group-lg">
+            <input
+              type="text"
+              id="vertex-input"
+              class="form-control input-lg"
+              placeholder="Vertice 1 Vertice 2 Costo"
+            />
+          </div>
+        </form>
+        <div class="row">
+          <div class="col-md-12" style="height: 10px"></div>
+        </div>
+        <div class="d-flex justify-content-center">
+          <button
+            type="button"
+            class="btn btn-info btn-lg btn-block"
+            id="input-vertex"
+          >
             Introducir vértice
           </button>
-        </form>
+          <div class="row-md-12" style="width: 10px"></div>
+
+          <button
+            type="button"
+            class="btn btn-warning btn-lg btn-block"
+            id="calculate-matrix"
+          >
+            Calcular
+          </button>
+        </div>
       </div>
     </div>
 
-    <button type="button" class="btn btn-warning" id="calculate-matrix">
-      Calcular ABERSHETUMARE
-    </button>
+    <div class="container">
+      <div class="row">
+        <div class="col-md-3">
+          <div class="row">
+            <div class="col-md-12" style="height: 10px"></div>
+          </div>
+          <div class="container d-flex justify-content-center">
+            <ul
+              class="list-group list-group-flush"
+              id="introduced-vertex-list"
+            ></ul>
+          </div>
+        </div>
+        <div class="col-md-9">
+          <div id="network" style="height: 50vh"></div>
+        </div>
+      </div>
+    </div>
 
     <script
       src="https://code.jquery.com/jquery-3.3.1.slim.min.js"

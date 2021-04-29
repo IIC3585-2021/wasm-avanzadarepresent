@@ -4,11 +4,76 @@ const N = 9
 const matrix = (rows, cols) => new Array(cols).fill(0).map((o, i) => new Array(rows).fill(0))
 const matrixToBuild = {};
 
+const introduceIntoList = (inputValue) => {
+  let father = document.getElementById('introduced-vertex-list');
+  let newChild = document.createElement('li');
+  newChild.className = "list-group-item";
+  newChild.textContent  = inputValue;
+  father.appendChild(newChild);
+}
+
+const clearTextInput = () => {
+  document.getElementById('vertex-input').value = '';
+}
+
+const generateGraphNodes = () => {
+  const uniqueLetters = Object.keys(matrixToBuild);
+  uniqueLetters.sort();
+  let nodes = []; 
+
+  for (const [index, node] of uniqueLetters.entries()) {
+    nodes.push({id: index, label: node});
+  }
+
+  return nodes;
+}
+
+const generateGraphEdges = () => {
+  const uniqueLetters = flattenMatrix(matrixToBuild);
+  let edges = [];
+  const notDefinedValue = 4_294_967_295;
+  for (let i = 0; i < uniqueLetters.length; i++) {
+    for (let j = 0; j < uniqueLetters[i].length; j++) {
+      const weight = uniqueLetters[i][j];
+      if ( weight !== 0 && weight !== notDefinedValue) {
+        edges.push({from: i, to: j, label: weight})
+      }
+    }
+  }
+  return edges;
+}
+
+const DrawGraph = () => {
+  // create an array with nodes
+  var nodes = new vis.DataSet(generateGraphNodes());
+
+  // create an array with edges
+  var edges = new vis.DataSet(generateGraphEdges());
+
+  // create a network
+  var container = document.getElementById("network");
+  var data = {
+    nodes: nodes,
+    edges: edges,
+  };
+  var options = {
+    nodes: {
+      shape: "circle",
+    },
+  };
+  var network = new vis.Network(container, data, options);
+}
+
+
+
 const getMatrixInput = () => {
-  let fromInput = String(document.getElementById('from-input').value);
-  let toInput = String(document.getElementById('to-input').value);
-  let weightInput = parseInt(parseInt(document.getElementById('weight-input').value));
-  
+  let formInput = String(document.getElementById('vertex-input').value);
+  let regexp = /(\w+)\s*(\w+)\s*(\d+)/g;
+  let matches = regexp.exec(formInput);
+  let fromInput = matches[1];
+  let toInput = matches[2];
+  let weightInput = parseInt(matches[3]);
+
   if (fromInput in matrixToBuild) {
     matrixToBuild[fromInput][toInput] = weightInput;
   }
@@ -16,6 +81,9 @@ const getMatrixInput = () => {
     matrixToBuild[fromInput] = {};
     matrixToBuild[fromInput][toInput] = weightInput;
   }
+  introduceIntoList(matches[0]);
+  DrawGraph(); 
+  clearTextInput();
 }
 
 $("#input-vertex").click(function() {
@@ -79,11 +147,6 @@ const getBestRoute = (myModule, ptr) => {
     bestRouteList[i] = myModule.getValue(ptr + i * 4, "i32");
   }
   return bestRouteList;
-}
-
-const resetBtn = document.getElementById("reset-btn");
-resetBtn.onclick = () => {
-  resetSudokuGrid();
 }
 
 const mapRouteToLetters = (routeResult) => {
