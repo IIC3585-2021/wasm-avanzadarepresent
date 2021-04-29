@@ -2,7 +2,40 @@ import Module from "./tsp.js"
 const NOT_DEFINED_VALUE = 2**16 - 1
 
 const matrix = (rows, cols) => new Array(cols).fill(0).map((o, i) => new Array(rows).fill(0))
-const matrixToBuild = {};
+let matrixToBuild = {};
+
+const resetAll = () => {
+  matrixToBuild = {};
+  DrawGraph();
+  clearTextInput();
+  let father = document.getElementById('introduced-vertex-list');
+  removeAllChildNodes(father);
+  document.getElementById('total-cost').value = '';
+}
+
+function removeAllChildNodes(parent) {
+  while (parent.firstChild) {
+      parent.removeChild(parent.firstChild);
+  }
+}
+
+function updateHTMLCost(value) {
+  document.getElementById('total-cost').innerHTML = `Costo total: ${value}`;
+}
+
+function calculateCost(selectedRoute) {
+  selectedRoute.push(selectedRoute[0])
+  let totalCost = 0
+  for (let index = 0; index < selectedRoute.length - 1; index++) {
+    let from = selectedRoute[index]
+    let to = selectedRoute[index + 1]
+    totalCost += matrixToBuild[from][to]
+  }
+  console.log(`total cost: ${totalCost}`)
+  updateHTMLCost(totalCost);
+}
+
+
 
 const introduceIntoList = (inputValue) => {
   let father = document.getElementById('introduced-vertex-list');
@@ -131,6 +164,8 @@ $("#calculate-matrix").click(function() {
   const adjacencyMatrix = flattenMatrix(matrixToBuild);
 })
 
+$("#restore-status").click(resetAll);
+
 function flattenMatrix(matrixHash) {
 
   const uniqueLetters = Object.keys(matrixHash);
@@ -160,7 +195,6 @@ const resetSudokuGrid = () => {
 
 const makePtrOfArray = (myModule) => {
   let adjacencyMatrix = flattenMatrix(matrixToBuild);
-  console.log(adjacencyMatrix)
   const N = adjacencyMatrix.length;
   const arrayPtr = myModule._calloc(N, 4);
   for (let i = 0; i < N; i++) {
@@ -204,6 +238,7 @@ Module().then(function (mymod) {
     let routeResult = getBestRoute(mymod, routeResultPtr);
     mymod._free(routeResultPtr);
     let result = mapRouteToLetters(routeResult)
+    calculateCost(result);
     DrawGraph(result);
     console.log(result);
   }
