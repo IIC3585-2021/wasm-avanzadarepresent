@@ -240,6 +240,5 @@ Module().then(function (mymod) {
     let result = mapRouteToLetters(routeResult)
     calculateCost(result);
     DrawGraph(result);
-    console.log(result);
   }
 })
