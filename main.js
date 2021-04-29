@@ -1,5 +1,5 @@
 import Module from "./tsp.js"
-const N = 9
+const NOT_DEFINED_VALUE = 2**16 - 1
 
 const matrix = (rows, cols) => new Array(cols).fill(0).map((o, i) => new Array(rows).fill(0))
 const matrixToBuild = {};
@@ -31,9 +31,9 @@ const generateGraphNodes = () => {
 const generateGraphEdges = () => {
   const uniqueLetters = flattenMatrix(matrixToBuild);
   let edges = [];
-  const notDefinedValue = 4_294_967_295;
+  const notDefinedValue = NOT_DEFINED_VALUE;
   for (let i = 0; i < uniqueLetters.length; i++) {
-    for (let j = 0; j < uniqueLetters[i].length; j++) {
+    for (let j = i + 1; j < uniqueLetters[i].length; j++) {
       const weight = uniqueLetters[i][j];
       if ( weight !== 0 && weight !== notDefinedValue) {
         edges.push({from: i, to: j, label: weight})
@@ -43,12 +43,29 @@ const generateGraphEdges = () => {
   return edges;
 }
 
-const DrawGraph = () => {
+const DrawGraph = (selectedRoute=null) => {
   // create an array with nodes
   var nodes = new vis.DataSet(generateGraphNodes());
 
   // create an array with edges
   var edges = new vis.DataSet(generateGraphEdges());
+  
+  if (selectedRoute) {
+    const uniqueLetters = Object.keys(matrixToBuild);
+    uniqueLetters.sort();
+
+    const indexes = selectedRoute.map(letter => uniqueLetters.indexOf(letter))
+    indexes.push(indexes[0]);
+
+    for (let i = 0; i < selectedRoute.length - 1; i++) {
+      edges.forEach(element => {
+        if ((element.from === indexes[i] && element.to === indexes[i + 1]) || (element.from === indexes[i + 1] && element.to === indexes[i]) ) {
+          element.color = { color: "red" }
+          edges.update(element)
+        }
+      });
+    }
+  }
 
   // create a network
   var container = document.getElementById("network");
@@ -63,13 +80,12 @@ const DrawGraph = () => {
   };
   var network = new vis.Network(container, data, options);
 }
+// A B 10, A D 8, A E 7, B D 7, B C 12, C D 6, C F 7, C G 5, D E 9, D F 4, E G 11, F G 3
 
 
-
-const getMatrixInput = () => {
-  let formInput = String(document.getElementById('vertex-input').value);
+const processInput = (input) => {
   let regexp = /(\w+)\s*(\w+)\s*(\d+)/g;
-  let matches = regexp.exec(formInput);
+  let matches = regexp.exec(input);
   let fromInput = matches[1];
   let toInput = matches[2];
   let weightInput = parseInt(matches[3]);
@@ -81,9 +97,30 @@ const getMatrixInput = () => {
     matrixToBuild[fromInput] = {};
     matrixToBuild[fromInput][toInput] = weightInput;
   }
+  if (toInput in matrixToBuild) {
+    matrixToBuild[toInput][fromInput] = weightInput;
+  }
+  else {
+    matrixToBuild[toInput] = {};
+    matrixToBuild[toInput][fromInput] = weightInput;
+  }
   introduceIntoList(matches[0]);
   DrawGraph(); 
-  clearTextInput();
+  clearTextInput();      
+}
+
+
+const getMatrixInput = () => {
+  let formInput = String(document.getElementById('vertex-input').value);
+  if (formInput.includes(",")) {
+    for (let index = 0; index < formInput.split(",").length; index++) {
+      const element = formInput.split(",")[index];
+      processInput(element)
+    }  
+  }
+  else {
+    processInput(formInput)    
+  }
 }
 
 $("#input-vertex").click(function() {
@@ -100,7 +137,7 @@ function flattenMatrix(matrixHash) {
   uniqueLetters.sort()
 
   const matrixList = matrix(uniqueLetters.length, uniqueLetters.length);
-  const notDefinedValue = 4_294_967_295;
+  const notDefinedValue = NOT_DEFINED_VALUE;
   
   for (let fromLetterIndex = 0; fromLetterIndex < uniqueLetters.length; fromLetterIndex++) {
     for (let toLetterIndex = 0; toLetterIndex < uniqueLetters.length; toLetterIndex++) {
@@ -123,6 +160,7 @@ const resetSudokuGrid = () => {
 
 const makePtrOfArray = (myModule) => {
   let adjacencyMatrix = flattenMatrix(matrixToBuild);
+  console.log(adjacencyMatrix)
   const N = adjacencyMatrix.length;
   const arrayPtr = myModule._calloc(N, 4);
   for (let i = 0; i < N; i++) {
@@ -166,6 +204,7 @@ Module().then(function (mymod) {
     let routeResult = getBestRoute(mymod, routeResultPtr);
     mymod._free(routeResultPtr);
     let result = mapRouteToLetters(routeResult)
+    DrawGraph(result);
     console.log(result);
   }
 })
